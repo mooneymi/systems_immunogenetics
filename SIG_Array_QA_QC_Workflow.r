@@ -53,7 +53,7 @@ describe(make.boxplot)
 make.boxplot(bgcor.exprs, type = 'raw', order.by=c("Mating", "Number"), color.by="Mating", make.pdf=F)
 
 ## Boxplot of normalized expression values
-make.boxplot(norm.exprs, type = 'norm', order.by=c("Mating", "Sex", "Number"), color.by="Mating", make.pdf=F)
+make.boxplot(norm.exprs, type = 'norm', order.by=c("Mating", "Number"), color.by="Mating", make.pdf=F)
 
 describe(plot.bac.spikes)
 
@@ -63,6 +63,12 @@ pg_file = '/Users/mooneymi/Documents/MyDocuments/SystemsImmunogenetics/Expressio
 ## Create bacterial spike plot
 plot.bac.spikes(norm.exprs, pg_file, make.pdf=F)
 
+describe(plot.polya.spikes)
+
+## Create polyA spike plot
+plot.polya.spikes(norm.exprs, pg_file, make.pdf=F)
+
 describe(make.heatmap)
 
-make.heatmap(norm.exprs, base.factors=c('Sex', 'D4_percent'), make.pdf=F)
+## Create annotated heatmap (don't include MAQC in heatmap)
+make.heatmap(norm.exprs[, norm.exprs$ID != 'MAQC'], base.factors=c('Sex', 'D4_percent'), make.pdf=F)
