@@ -239,7 +239,7 @@ This function creates an annotated heatmap for expression data.
 
 Parameters:
 use.exprs: An ExpressionSet returned by the rma() function.
-cut.dist: 
+cut.dist: The height at which to cut the dendrogram (default is NULL; no cutting).
 num.genes: A number indicating the number of most variable genes to include. If NULL, all genes
    will be included (default is 1000).
 base.factors: A character vector containing column names that will be used to annotate the
