@@ -152,6 +152,71 @@ make.pdf: A logical indicating if a PDF should be created.
 base.name: The base filename of the PDF to create (default is 'test').
 "
 
+#A convienience function for making polya spike plots
+#Input:
+#       raw.exprs: A GeneFeatureSet or similar object which has an rma method returning an ExpressionSet
+#       base.name: The base name of the PDF to generate (if make.pdf == T)
+#       plot.type: Either "AFFX-r2-Bs" or "AFFX" which are the two types of probesets, defaults to "AFFX-r2-Bs"
+#       pgf.file: probe group file from Affy for the appropriate array type.
+#Output:
+#       A PDF named as base.name_polya_spikes.pdf
+plot.polya.spikes <- function(use.exprs, pgf.file, plot.type=c("AFFX-r2-Bs", "AFFX"), base.name="test", make.pdf=F)
+{
+  require(ggplot2)
+  require(affxparser)
+  
+  plot.type <- match.arg(plot.type)
+  
+  #use.exprs <- rma(raw.exprs)
+  
+  pgf.list <- readPgf(pgf.file)
+  probeset.types <- data.frame(fsetid=pgf.list$probesetId, fsetName=pgf.list$probesetName, type=pgf.list$probesetType, stringsAsFactors=FALSE)
+  
+  poly.a.spikes <- probeset.types[probeset.types$type == "control->affx->polya_spike",]
+  
+  spike.exprs <- exprs(use.exprs)[as.character(unique(poly.a.spikes$fsetid)),]
+  
+  spike.dta <- melt(spike.exprs)
+  spike.dta.merge <- merge(spike.dta, poly.a.spikes, by.x="Var1", by.y="fsetid", all=F, incomparables=NA, sort=FALSE)
+  
+  spike.dta.merge$type <- ifelse(grepl("AFFX-r2-Bs", spike.dta.merge$fsetName), "AFFX-r2-Bs", "AFFX")
+  spike.dta.merge$pos <- sub("_*s*_[as]t", "", sapply(strsplit(spike.dta.merge$fsetName, "-"), function(x) x[length(x)]))
+  spike.dta.merge$pos <- factor(spike.dta.merge$pos, levels=c("5", "M", "3"), ordered=T)
+  
+  spike.dta.merge$direction <- sapply(strsplit(spike.dta.merge$fsetName, "[-_]"), function(x) x[length(x)])
+  
+  
+  split.fset <- strsplit(spike.dta.merge$fsetName, "-")
+  spike.dta.merge$Spike <- ifelse(spike.dta.merge$type == "AFFX", sapply(split.fset, "[", 2), sapply(split.fset, "[", 4))
+  spike.dta.merge$Spike <- sub("X", "", spike.dta.merge$Spike)
+  substr(spike.dta.merge$Spike, 1, 1) <- toupper(substr(spike.dta.merge$Spike, 1, 1))
+  
+  #from the affy exon/gene array whitepaper: lys<phe<thr<dap, not sure about Trpn
+  spike.dta.merge$Spike <- factor(spike.dta.merge$Spike, levels=c("Dap", "Thr", "Phe", "Lys", "Trpn"), ordered=T)
+  
+  pa.basic.plot <- qplot(x=Var2, y=value, group=Spike, color=Spike, data=spike.dta.merge[spike.dta.merge$type == plot.type,], stat="summary",
+                         fun.y=mean, geom="line", ylab="log2(Expression)", xlab="", main="PolyA Spikes", facets=pos~direction) + theme(axis.text.x=element_text(size=8, angle=90, hjust=1))
+  
+  
+  plot(pa.basic.plot)
+	
+  if (make.pdf) {
+	dev.copy2pdf(file=paste0(base.name, "_polya_spikes.pdf"), width=16, height=10)
+	writeLines(paste0("Figure saved to: ", paste0(base.name, "_polya_spikes.pdf")))
+	d = dev.off()
+  }
+}
+attr(plot.polya.spikes, 'help') = "
+This function creates a polyA spike plot.
+
+Parameters:
+use.exprs: An ExpressionSet returned by the rma() function.
+pgf.file: A probe group file for the array.
+plot.type: A string indicating the type of control probesets for the array (default is 'AFFX-r2-Bs').
+make.pdf: A logical indicating if a PDF should be created. 
+base.name: The base filename of the PDF to create (default is 'test').
+"
+
 
 #A function that provides a consistent way of processing expression data for heatmaps etc.
 #Input:
