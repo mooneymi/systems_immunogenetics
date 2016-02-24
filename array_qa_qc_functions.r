@@ -30,7 +30,7 @@ make.boxplot <- function(use.exprs, type=c("raw", "norm"), make.pdf=F, base.name
   
   #use.exprs <- switch(type, raw=rma(raw.exprs, normalize=FALSE, target="core"), norm=rma(raw.exprs, normalize=TRUE, target="core"))
   
-  basic.ord <- do.call("order", pData(use.exprs)[,order.by])
+  basic.ord <- do.call("order", pData(use.exprs)[,order.by,drop=F])
   
   use.exprs <- use.exprs[,basic.ord]
   
